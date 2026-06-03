@@ -12,6 +12,7 @@ import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
 import Helpdesk from './pages/Helpdesk';
 import AllEntries from './pages/AllEntries';
+import RecentActivities from './pages/RecentActivities';
 
 // Simple Auth Guard
 const RequireAuth = ({ children }) => {
@@ -49,6 +50,7 @@ const App = () => {
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="helpdesk" element={<Helpdesk />} />
             <Route path="all-entries" element={<AllEntries />} />
+            <Route path="recent-activities" element={<RecentActivities />} />
           </Route>
         </Routes>
       </Router>

@@ -12,11 +12,7 @@ const statusMap = {
   REJECTED: { label: 'Rejected', bg: 'bg-rose-100',  text: 'text-rose-700' },
 };
 
-const recentActivities = [
-  { action: 'Guest entry approved', sub: 'Rajesh Kumar · 10:30 AM', color: 'bg-emerald-500' },
-  { action: 'Delivery received',    sub: 'Amazon Package · 09:45 AM', color: 'bg-[#3B82F6]' },
-  { action: 'Shift started',        sub: 'Morning Duty · 08:00 AM', color: 'bg-[#06B6D4]' },
-];
+
 
 const Dashboard = () => {
   const { profile, user } = useAuth();
@@ -96,6 +92,23 @@ const Dashboard = () => {
       setSelectedGuest(null);
     }
   };
+
+  const recentActivities = entries.slice(0, 5).map(entry => {
+    let action = '';
+    let color = '';
+    if (entry.status === 'APPROVED') { action = 'Guest approved'; color = 'bg-[#3B82F6]'; }
+    else if (entry.status === 'ENTERED') { action = 'Guest entered'; color = 'bg-emerald-500'; }
+    else if (entry.status === 'EXITED') { action = 'Guest exited'; color = 'bg-slate-500'; }
+    else if (entry.status === 'REJECTED') { action = 'Guest rejected'; color = 'bg-rose-500'; }
+    else { action = 'Guest pending'; color = 'bg-amber-500'; }
+    
+    const timeString = entry.updatedAt ? new Date(entry.updatedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Just now';
+    return {
+      action,
+      sub: `${entry.guestName} · ${timeString}`,
+      color
+    };
+  });
 
   const filtered = entries.filter(e =>
     e.guestName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -214,23 +227,29 @@ const Dashboard = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4 px-1">
           <h2 className="text-lg font-extrabold text-slate-800">Recent Activity</h2>
-          <button onClick={() => alert('View all activity - Coming Soon!')} className="text-xs font-bold text-[#3B82F6] flex items-center hover:text-blue-700 active:scale-95 transition-all">
+          <button onClick={() => navigate('/recent-activities')} className="text-xs font-bold text-[#3B82F6] flex items-center hover:text-blue-700 active:scale-95 transition-all">
             View All <ChevronRight size={14} />
           </button>
         </div>
         
         <div className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
-          {recentActivities.map((activity, i) => (
-            <div key={i} className="min-w-[240px] bg-white rounded-[20px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-50 flex flex-col justify-between">
-              <div>
-                <span className={`inline-block px-2 py-1 rounded-md text-[9px] font-extrabold text-white uppercase tracking-wider mb-2 ${activity.color}`}>
-                  {activity.action.split(' ')[0]}
-                </span>
-                <h3 className="font-extrabold text-slate-800 text-sm leading-tight mb-1">{activity.action}</h3>
-                <p className="text-xs font-semibold text-slate-500">{activity.sub}</p>
+          {recentActivities.length > 0 ? (
+            recentActivities.map((activity, i) => (
+              <div key={i} className="min-w-[240px] bg-white rounded-[20px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-50 flex flex-col justify-between">
+                <div>
+                  <span className={`inline-block px-2 py-1 rounded-md text-[9px] font-extrabold text-white uppercase tracking-wider mb-2 ${activity.color}`}>
+                    {activity.action.split(' ')[0]}
+                  </span>
+                  <h3 className="font-extrabold text-slate-800 text-sm leading-tight mb-1">{activity.action}</h3>
+                  <p className="text-xs font-semibold text-slate-500">{activity.sub}</p>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="w-full text-center py-6 bg-white rounded-[20px] shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-slate-50">
+              <p className="text-xs font-semibold text-slate-500">No recent activity yet.</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
 
