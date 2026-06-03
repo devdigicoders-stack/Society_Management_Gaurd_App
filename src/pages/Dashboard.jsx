@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { fetchApi } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Users, LogIn, Clock, TrendingUp, ShieldCheck, Search, Plus, X, Loader2, LogOut, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const statusMap = {
   PENDING:  { label: 'Pending',  bg: 'bg-amber-100', text: 'text-amber-700' },
@@ -18,7 +19,8 @@ const recentActivities = [
 ];
 
 const Dashboard = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const navigate = useNavigate();
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -28,29 +30,27 @@ const Dashboard = () => {
   const [flatOwners, setFlatOwners] = useState([]);
   const [search, setSearch] = useState('');
 
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const [ownersRes, guestsRes] = await Promise.all([
+        fetchApi('/flat-owners'),
+        fetchApi('/guests/guard'),
+      ]);
+      if (ownersRes.success) setFlatOwners(ownersRes.data || []);
+      if (guestsRes.success) setEntries(guestsRes.data || []);
+      else console.error('Guests fetch failed:', guestsRes.message);
+    } catch (e) {
+      console.error('Error fetching data:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Wait until user is fully loaded before fetching
   useEffect(() => {
-    const init = async () => {
-      setLoading(true);
-      try {
-        const res = await fetchApi('/flat-owners');
-        if (res.success) {
-          setFlatOwners(res.data || []);
-        }
-        
-        const guestsRes = await fetchApi('/guests/guard');
-        if (guestsRes.success) {
-          setEntries(guestsRes.data || []);
-        } else {
-          setEntries([]);
-        }
-      } catch (e) {
-        console.error('Error fetching data:', e);
-      } finally {
-        setLoading(false);
-      }
-    };
-    init();
-  }, []);
+    if (user?._id) loadData();
+  }, [user?._id]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -74,9 +74,9 @@ const Dashboard = () => {
         }) 
       });
       if (res.success) {
-        setEntries([res.data, ...entries]);
         setShowModal(false);
         setNewEntry({ guestName: '', guestPhone: '', flatOwner: '', purpose: 'Visitor', vehicleNumber: '' });
+        await loadData(); // refresh full list from DB
       }
     } catch (err) { alert(err.message || 'Failed'); }
     finally { setSubmitting(false); }
@@ -148,7 +148,7 @@ const Dashboard = () => {
       <div>
         <div className="flex items-center justify-between mb-4 px-1">
           <h2 className="text-lg font-extrabold text-slate-800">Entry Log</h2>
-          <button className="text-xs font-bold text-[#3B82F6] flex items-center">
+          <button onClick={() => navigate('/all-entries')} className="text-xs font-bold text-[#3B82F6] flex items-center hover:text-blue-700 active:scale-95 transition-all">
             View All <ChevronRight size={14} />
           </button>
         </div>
@@ -215,7 +215,7 @@ const Dashboard = () => {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4 px-1">
           <h2 className="text-lg font-extrabold text-slate-800">Recent Activity</h2>
-          <button className="text-xs font-bold text-[#3B82F6] flex items-center">
+          <button onClick={() => alert('View all activity - Coming Soon!')} className="text-xs font-bold text-[#3B82F6] flex items-center hover:text-blue-700 active:scale-95 transition-all">
             View All <ChevronRight size={14} />
           </button>
         </div>
@@ -281,8 +281,8 @@ const Dashboard = () => {
                     <option value="">No Flat Owners (Data empty)</option>
                   ) : (
                     flatOwners.map((o, idx) => {
-                      const userId = (o.user.id && o._id) ? o.user._id : (typeof o.user === 'string' ? o.user : o._id);
-                      const userName = (o.user.name ) ? o.user.name : `Owner ${idx + 1} (No Name)`;
+                      const userId = typeof o.user === 'object' ? o.user._id : o.user;
+                      const userName = o.user?.name || `Owner ${idx + 1}`;
                       return (
                         <option key={o._id || idx} value={userId}>
                           {userName} ({o.flatNumber || 'N/A'}, {o.tower || 'N/A'})

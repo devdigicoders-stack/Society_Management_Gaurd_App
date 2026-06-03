@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
-import { MessageSquare, Bell, LogOut, Home, User, ShieldCheck } from 'lucide-react';
+import { Bell, LogOut, Home, User, ShieldCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
@@ -35,15 +35,15 @@ const DashboardLayout = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <button className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-slate-700 shadow-sm">
-              <MessageSquare size={18} />
-            </button>
             <div className="relative">
-              <button onClick={handleLogout} className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-slate-700 shadow-sm">
+              <button className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-slate-700 shadow-sm">
                 <Bell size={18} />
               </button>
               <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-black rounded-full border-2 border-white"></span>
             </div>
+            <button onClick={handleLogout} className="w-9 h-9 rounded-full bg-white flex items-center justify-center text-red-500 shadow-sm">
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </div>

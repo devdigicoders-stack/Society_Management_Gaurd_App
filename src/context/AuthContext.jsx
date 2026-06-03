@@ -15,24 +15,30 @@ export const AuthProvider = ({ children }) => {
       const token = localStorage.getItem('guard_token');
       if (token) {
         try {
-          // Parse JWT payload for immediate user state
+          // Parse JWT payload immediately so user is set before API call
           const base64Url = token.split('.')[1];
           const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
           const payload = JSON.parse(window.atob(base64));
-          setUser({ _id: payload.id, role: payload.role });
           
-          // Fetch the guard's profile to get additional details like societyId, shift, etc.
+          // Check token expiry
+          if (payload.exp && payload.exp * 1000 < Date.now()) {
+            localStorage.removeItem('guard_token');
+            setLoading(false);
+            return;
+          }
+
+          setUser({ _id: payload.id, role: payload.role, name: payload.name });
+          
+          // Fetch full profile in background
           const res = await fetchApi('/guards/profile/me');
           if (res.success && res.data) {
             setProfile(res.data);
             if (res.data.user) setUser(res.data.user);
-          } else {
-            console.warn("Guard profile is null or not found");
           }
         } catch (error) {
-          console.error("Failed to load user profile", error);
-          // Don't remove token here! api.js already handles 401/403.
-          // This prevents logging the user out on network errors or crashes.
+          console.error('Failed to load user profile', error);
+          // Only logout on 401 — api.js handles that via window.location
+          // For other errors (network, 500), keep the user logged in
         }
       }
       setLoading(false);
