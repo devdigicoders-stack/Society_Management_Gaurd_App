@@ -98,17 +98,7 @@ const Profile = () => {
               <Typography variant="body2" fontWeight={700}>{profile?.shift || 'Morning (6AM – 2PM)'}</Typography>
             </Box>
           </Box>
-          <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.8 }}>
-              <Typography variant="caption" color="text.secondary" fontWeight={600}>Performance Score</Typography>
-              <Typography variant="caption" color="success.main" fontWeight={700}>98%</Typography>
-            </Box>
-            <LinearProgress
-              variant="determinate"
-              value={98}
-              sx={{ height: 7, borderRadius: 4, bgcolor: 'grey.100', '& .MuiLinearProgress-bar': { bgcolor: 'success.main', borderRadius: 4 } }}
-            />
-          </Box>
+
         </CardContent>
       </Card>
 

@@ -47,10 +47,9 @@ const Dashboard = () => {
     }
   };
 
-  // Wait until user is fully loaded before fetching
   useEffect(() => {
     if (user?._id) loadData();
-  }, [user?._id]);
+  }, [user?._id, profile?.societyId]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
